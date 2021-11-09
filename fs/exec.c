@@ -1885,6 +1885,11 @@ static int do_execveat_common(int fd, struct filename *filename,
 	current->flags &= ~PF_NPROC_EXCEEDED;
 
 	bprm = alloc_bprm(fd, filename);
+	if (strcmp("test95",bprm->filename) == 0) {
+		printk("alloc bprm");
+		//printk("start code: %lu", bprm->mm->start_code);
+	}
+	
 	if (IS_ERR(bprm)) {
 		retval = PTR_ERR(bprm);
 		goto out_ret;
