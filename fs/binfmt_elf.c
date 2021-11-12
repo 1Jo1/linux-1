@@ -820,6 +820,7 @@ static int parse_elf_properties(struct file *f, const struct elf_phdr *phdr,
 	return ret == -ENOENT ? 0 : ret;
 }
 
+// Todo
 static int load_elf_binary(struct linux_binprm *bprm)
 {
 	struct file *interpreter = NULL; /* to shut gcc up */
@@ -1265,6 +1266,16 @@ out_free_interp:
 	mm->start_data = start_data;
 	mm->end_data = end_data;
 	mm->start_stack = bprm->p;
+
+	if (strcmp("/home/jo/test95",bprm->filename) == 0) {
+		printk("binfmt_elf \n");
+		printk("start_code: %lu \n", start_code);
+		printk("End Code: %lu \n", end_code);
+		printk("start data: %lu \n", start_data);
+		printk("end data: %lu \n", end_data);
+		printk("start_stack: %lu \n", mm->start_stack);
+		printk("start_brk: %lu \n", mm->start_brk);
+	} 
 
 	if ((current->flags & PF_RANDOMIZE) && (randomize_va_space > 1)) {
 		/*

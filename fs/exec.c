@@ -23,6 +23,7 @@
  * formats.
  */
 
+#include "linux/buffer_head.h"
 #include <linux/kernel_read_file.h>
 #include <linux/slab.h>
 #include <linux/file.h>
@@ -1783,6 +1784,7 @@ static int exec_binprm(struct linux_binprm *bprm)
 	audit_bprm(bprm);
 	trace_sched_process_exec(current, old_pid, bprm);
 	ptrace_event(PTRACE_EVENT_EXEC, old_vpid);
+	//send proc exec connector
 	proc_exec_connector(current);
 	return 0;
 }
@@ -1802,7 +1804,7 @@ static int bprm_execve(struct linux_binprm *bprm,
 
 	check_unsafe_exec(bprm);
 	current->in_execve = 1;
-
+ 
 	file = do_open_execat(fd, filename, flags);
 	retval = PTR_ERR(file);
 	if (IS_ERR(file))
@@ -1885,15 +1887,17 @@ static int do_execveat_common(int fd, struct filename *filename,
 	current->flags &= ~PF_NPROC_EXCEEDED;
 
 	bprm = alloc_bprm(fd, filename);
-	if (strcmp("test95",bprm->filename) == 0) {
-		printk("alloc bprm");
-		//printk("start code: %lu", bprm->mm->start_code);
-	}
-	
 	if (IS_ERR(bprm)) {
 		retval = PTR_ERR(bprm);
 		goto out_ret;
 	}
+
+    //if (strcmp("/home/jo/test95",filename->name) == 0) {
+	//		printk("alloc bprm \n");
+	//		printk("vm_start: %lu \n", bprm->vma->vm_start);
+	//		printk("vm end: %lu \n", bprm->vma->vm_end);
+	//		printk("vm_mm->start_code: %lu \n", bprm->vma->vm_mm->start_code);
+	//}
 
 	retval = count(argv, MAX_ARG_STRINGS);
 	if (retval < 0)
@@ -1921,13 +1925,13 @@ static int do_execveat_common(int fd, struct filename *filename,
 	retval = copy_strings(bprm->argc, argv, bprm);
 	if (retval < 0)
 		goto out_free;
-
+	
 	retval = bprm_execve(bprm, fd, filename, flags);
-out_free:
+out_free:	
 	free_bprm(bprm);
 
 out_ret:
-	putname(filename);
+	putname(filename);	
 	return retval;
 }
 
