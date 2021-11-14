@@ -1158,6 +1158,7 @@ static struct io_ring_ctx *io_ring_ctx_alloc(struct io_uring_params *p)
 	struct io_ring_ctx *ctx;
 	int hash_bits;
 
+	//create io_uring context
 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
 	if (!ctx)
 		return NULL;
@@ -1171,10 +1172,14 @@ static struct io_ring_ctx *io_ring_ctx_alloc(struct io_uring_params *p)
 	if (hash_bits <= 0)
 		hash_bits = 1;
 	ctx->cancel_hash_bits = hash_bits;
+	
+	//1U << ---> 2^n
 	ctx->cancel_hash = kmalloc((1U << hash_bits) * sizeof(struct hlist_head),
 					GFP_KERNEL);
 	if (!ctx->cancel_hash)
 		goto err;
+	
+	//fill all NULLS	
 	__hash_init(ctx->cancel_hash, 1U << hash_bits);
 
 	ctx->dummy_ubuf = kzalloc(sizeof(*ctx->dummy_ubuf), GFP_KERNEL);
