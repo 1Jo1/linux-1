@@ -1169,11 +1169,12 @@ static struct io_ring_ctx *io_ring_ctx_alloc(struct io_uring_params *p)
 	 */
 	hash_bits = ilog2(p->cq_entries);
 	hash_bits -= 5;
+	printk("alloc: hash_bits: %d \n", hash_bits);
 	if (hash_bits <= 0)
 		hash_bits = 1;
 	ctx->cancel_hash_bits = hash_bits;
 	
-	//1U << ---> 2^n
+	//1U << ---> 2^n lists
 	ctx->cancel_hash = kmalloc((1U << hash_bits) * sizeof(struct hlist_head),
 					GFP_KERNEL);
 	if (!ctx->cancel_hash)
@@ -5150,10 +5151,15 @@ static int io_async_wake(struct wait_queue_entry *wait, unsigned mode, int sync,
 
 static void io_poll_req_insert(struct io_kiocb *req)
 {
+	printk("io_poll_req_insert\n");
 	struct io_ring_ctx *ctx = req->ctx;
 	struct hlist_head *list;
-
+	unsigned long hash_req;
+	
+	hash_req = hash_long(req->user_data, ctx->cancel_hash_bits);
+	printk("io_poll_req_insert hash_req: %lx\n", hash_req); 
 	list = &ctx->cancel_hash[hash_long(req->user_data, ctx->cancel_hash_bits)];
+	//hashnode -> new entry to be added
 	hlist_add_head(&req->hash_node, list);
 }
 
@@ -5326,6 +5332,7 @@ static bool io_poll_remove_all(struct io_ring_ctx *ctx, struct task_struct *tsk,
 	int posted = 0, i;
 
 	spin_lock_irq(&ctx->completion_lock);
+	// counter list -> 1U << ctx->cancel_hash_bits 
 	for (i = 0; i < (1U << ctx->cancel_hash_bits); i++) {
 		struct hlist_head *list;
 
